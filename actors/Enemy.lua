@@ -4,7 +4,7 @@ local Enemy = {
   width  = 50,
   height = 50,
   speed  = 150,
-  target = nil
+  target = nil,
 }
 
 for k, v in pairs(Actor) do  Enemy[k] = v end
@@ -20,11 +20,15 @@ setmetatable(Enemy, {
 })
 
 function Enemy:_new(x, y, width, height, speed, target)
-  Actor._new(self, x, y)
+  Actor._new(self, x, y, "enemy")
   self.width  = width
   self.height = height
   self.speed  = speed
   self.target = target
+end
+
+function Enemy:markSweep()
+  self.needSweep = true
 end
 
 function Enemy:follow(target, dt)
