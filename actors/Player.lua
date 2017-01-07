@@ -1,6 +1,6 @@
 local Actor = require "actors.Actor"
 
-local MIN_RADIUS     = love.graphics.getWidth() / 20 + love.graphics.getHeight() / 20
+local MIN_RADIUS     = love.graphics.getHeight() > love.graphics.getWidth() and love.graphics.getWidth() / 30 or love.graphics.getHeight() / 30
 local NORMAL_RADIUS  = MIN_RADIUS * 2
 local MAX_RADIUS     = NORMAL_RADIUS * 2
 local DEFAULT_HEALTH = 3
@@ -93,7 +93,6 @@ end
 
 function Player:draw()
   local color = self.isInvulnerable and { 127, 127, 127 } or {  255 / self.health, 255 / 3 * self.health, 0, 128 }
-  love.graphics.rotate(91)
   love.graphics.setColor(color)
   love.graphics.circle("fill", self.x, self.y, self.radius)
   love.graphics.setColor(0, 255, 125)

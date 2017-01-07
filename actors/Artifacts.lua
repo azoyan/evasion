@@ -4,11 +4,15 @@ local Artifact = {
   width  = 10,
   height = 10,
   speed  = 0,
-  types = { freezeEnemies, stopEnemies },
-  type = freezeEnemies,
+  type = 0,
 }
 
-debug = "\n"
+local addHealth = love.graphics.newImage("assets/emergency.png")
+local freeze = love.graphics.newImage("assets/freeze.png")
+local anchor = love.graphics.newImage("assets/anchor.png")
+local bomb = love.graphics.newImage("assets/bomb.png")
+local flame = love.graphics.newImage("assets/flame.png")
+
 for k, v in pairs(Actor) do  Artifact[k] = v end
 Artifact.__index = Artifact
 
@@ -21,31 +25,45 @@ setmetatable(Artifact, {
   end,
 })
 
+
 function Artifact:update(dt)
 
 end
 
-function Artifact:_new(x, y, width, height, speed, target)
+function Artifact:_new(x, y, type)
   Actor._new(self, x, y, "artifcat")
   self.width  = width
   self.height = height
   self.speed  = speed
+  self.type = type ~= 0 and math.random(1, 5) or type
 end
 
 function Artifact:draw()
-  love.graphics.setColor(127, 227, 40)
-  love.graphics.rectangle("fill", self.x, self.y, self.width, self.height)
-  love.graphics.print("\n" .. debug)
+  color = {}
+  love.graphics.setColor(255, 255, 255)
+  if     self.type == 1 then love.graphics.draw(bomb, self.x, self.y)
+  elseif self.type == 2 then love.graphics.draw(anchor, self.x, self.y)
+  elseif self.type == 3 then love.graphics.draw(freeze, self.x, self.y)
+  elseif self.type == 4 then love.graphics.draw(flame, self.x, self.y)
+  elseif self.type == 5 then love.graphics.draw(addHealth, self.x, self.y)
+  else                       color = {255, 255, 255} end
+  -- love.graphics.setColor(color)
+  --love.graphics.rectangle("fill", self.x, self.y, self.width, self.height)
 end
 
 function Artifact:use(enemies)
-  if (self.type == freezeEnemies) then
-    for k, v in pairs(enemies) do
-      enemies[k].needSweep = true  -- это работает
-      debug = debug .. tostring(enemies[k]) .. "tn: " .. enemies[k].typename .. " v: " .. tostring(v) .. " vtn: " .. v.typename .. "\n"
-    end
-    self.needSweep = true
-  end
+  if self.type == 1 then
+    for k, v in pairs(enemies) do  enemies[k]:kill() end
+  elseif self.type == 2 then
+    for k, v in pairs(enemies) do  enemies[k].speed = 0.5 end
+  elseif self.type == 3 then
+    for k, v in pairs(enemies) do  enemies[k].speed = enemies[k].speed / 2 end
+  elseif self.type == 4 then
+    for k, v in pairs(enemies) do  enemies[k].speed = enemies[k].speed * 2 end
+  elseif self.type == 5 then   player.health = player.health + 1
+  elseif self.type == 6 then   player:injure(1) player.health = player.health + 1 end
+
+  self.shouldRemove = true
 end
 
 return Artifact

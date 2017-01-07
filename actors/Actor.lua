@@ -1,4 +1,4 @@
-Actor = { x = 0, y = 0, typename = "actor", needSweep = false }
+Actor = { x = 0, y = 0, typename = "actor", shouldRemove = false, isTouched = false }
 Actor.__index = Actor
 
 setmetatable(Actor, {
