@@ -12,6 +12,7 @@ local freeze = love.graphics.newImage("assets/freeze.png")
 local anchor = love.graphics.newImage("assets/anchor.png")
 local bomb = love.graphics.newImage("assets/bomb.png")
 local flame = love.graphics.newImage("assets/flame.png")
+local pickup = love.audio.newSource("assets/pickup.wav", "static")
 
 for k, v in pairs(Actor) do  Artifact[k] = v end
 Artifact.__index = Artifact
@@ -64,6 +65,7 @@ function Artifact:use(enemies)
   elseif self.type == 6 then   player:injure(1) player.health = player.health + 1 end
 
   self.shouldRemove = true
+  pickup:play()
 end
 
 return Artifact

@@ -15,6 +15,8 @@ function love.load()
   player    = Player(love.graphics.getWidth() / 2, love.graphics.getHeight() / 2)
   enemies   = {}
   artifacts = {}
+
+  math.randomseed(os.time())
 end
 
 function showHighscore(highscore)
@@ -28,8 +30,8 @@ function love.update(dt)
      updateArtifacts(artifacts, dt)
     enemyTime    = dt + enemyTime
     artifactTime = dt + artifactTime
-    if enemyTime > 30    then spawnEnemy() end
-    if artifactTime > math.random(10, 20) then createArtifact() end
+    if enemyTime > 1    then spawnEnemy() end
+    if artifactTime > math.random(5, 20) then createArtifact() end
   end
 end
 
