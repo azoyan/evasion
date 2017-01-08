@@ -17,19 +17,29 @@ function love.load()
   enemies   = {}
   artifacts = {}
 
+  for _=1, 80 do spawnEnemy() end
+  player.health = -1
+
   math.randomseed(os.time())
+
+  min_dt = 1/60
+    next_time = love.timer.getTime()
+
 end
 
 function showHighscore(highscore)
   love.graphics.print( "highscore: " .. highscore, love.graphics.getWidth() - 100)
-
 end
+
 function love.update(dt)
+  next_time = next_time + min_dt
   needStop = player.health < 0
   if needStop ~= true then
     highscore = highscore + dt
+
     player:update(dt)
     updateEnemies(enemies, dt)
+    assert(dt < 25)
     updateArtifacts(artifacts, dt)
     enemyTime    = dt + enemyTime
     artifactTime = dt + artifactTime
@@ -44,7 +54,7 @@ function updateEnemies(enemies, dt)
     if enemies[k] ~= nil then
       if enemy.shouldRemove then  enemies[k] = nil end
       enemy:update(dt)
-      if hasCollide(enemy, player) and not enemy.isTouched then
+      if hasCollide(enemy, player, dt) and not enemy.isTouched then
         player:injure(1)
         enemy:kill()
       end
@@ -52,9 +62,10 @@ function updateEnemies(enemies, dt)
   end
 end
 
-function updateArtifacts()
+function updateArtifacts(artifacts, dt)
+  assert(dt < 25)
   for k, artifact in pairs(artifacts) do
-    if hasCollide(artifact, player) then
+    if hasCollide(artifact, player, dt) then
       artifacts[k]:use(enemies)
       if artifacts[k].shouldRemove then artifacts[k] = nil end
     end
@@ -90,7 +101,7 @@ end
 
 function drawBackground()
   if isNight then love.graphics.setBackgroundColor(33, 33, 33)
-  else            love.graphics.setBackgroundColor(255, 255, 225)
+  else            love.graphics.setBackgroundColor(225, 255, 255)
   end
 end
 
@@ -101,7 +112,12 @@ function drawText()
   showHighscore(highscore)
 end
 
-function hasCollide(rect, target)
+function hasCollide(rect, target, dt)
+  assert(dt < 25)
+  if dt > 1/25 then
+    return target.x - target.radius < rect.x + rect.width and target.y - target.radius < rect.y + rect.height
+  end
+
   local circleDistance_x = math.abs(target.x - rect.x - rect.width  / 2);
   local circleDistance_y = math.abs(target.y - rect.y - rect.height / 2);
 
@@ -116,6 +132,12 @@ function hasCollide(rect, target)
 end
 
 function love.draw()
+  local cur_time = love.timer.getTime()
+  if next_time <= cur_time then
+    next_time = cur_time
+    return
+  end
+  love.timer.sleep(next_time - cur_time)
   drawBackground()
   drawText()
   for k, enemy in pairs(enemies)   do    enemy:draw() end

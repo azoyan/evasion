@@ -46,7 +46,7 @@ function Enemy:_new(x, y, width, height, speed, target, rx, ry, color)
   self.color = color or { math.random(0, 255), math.random(0, 255), math.random(0, 255)  }
   self.eyes = math.random(1, 3)
   self.sleepTime = math.random(1, 15)
-  self.fatefulTime = self.sleepTime ^ 2
+  self.fatefulTime = math.random(10, 20)
 end
 
 
@@ -102,7 +102,7 @@ function Enemy:drawEyes()
     self:drawEye(x, y - self.height / 5, radius )
   else
     k = 8
-    radius = radius / k 
+    radius = radius / k
     self:drawEye(x, y + self.height / 5, radius)
     self:drawEye(x, y - self.height / 5, radius)
     self:drawEye(x - self.width / 5, y,  radius)
