@@ -2,17 +2,21 @@ local Actor = require "actors.Actor"
 local Screen= require 'effects.shack'
 
 local Enemy = {
-  width  = 25,
-  height = 25,
+  width  = 0,
+  height = 0,
   speed  = 150,
   target = nil,
   timer = 0,
-  rx,
-  ry,
-  color = {}
+  rx = 0,
+  ry = 0,
+  color = {},
+  sleepTime = 0,
+  shouldSleep = false,
+  age = 0,
+  fatefulTime = 0,
 }
-Screen:setDimensions(love.graphics.getDimensions())
 
+Screen:setDimensions(love.graphics.getDimensions())
 
 local monster = love.graphics.newImage("assets/monster.png")
 local plop    = love.audio.newSource("assets/Explosion.wav", "static")
@@ -33,24 +37,21 @@ setmetatable(Enemy, {
 
 function Enemy:_new(x, y, width, height, speed, target, rx, ry, color)
   Actor._new(self, x, y, "enemy", false, false)
-  self.width  = width ~= nil and width or math.random(25, 100)
-  self.height = height ~= nil and height or math.random(25, 100)
+  self.width  = width  or math.random(25, 50)
+  self.height = height or math.random(25, 50)
   self.speed  = speed
   self.target = target
-  self.rx = rx ~=nil and rx or math.random(-self.width, self.width)
-  self.ry = ry ~=nil and ry or math.random(-self.height, self.height)
-  self.color = color ~=nil and color or { math.random(0, 255), math.random(0, 255), math.random(0, 255)  }
+  self.rx = rx or math.random(-self.width / 2, self.width)
+  self.ry = ry or math.random(-self.height / 2, self.height)
+  self.color = color or { math.random(0, 255), math.random(0, 255), math.random(0, 255)  }
+  self.eyes = math.random(1, 3)
+  self.sleepTime = math.random(1, 15)
+  self.fatefulTime = self.sleepTime ^ 2
 end
 
-function Enemy:kill()
-  self.isTouched = true
-  plop:play()
-  love.system.vibrate(0.02)
-end
 
-function Enemy:toRemove()
-  self.shouldRemove = true
-end
+function Enemy:kill()     self.isTouched    = true end
+function Enemy:toRemove() self.shouldRemove = true end
 
 function Enemy:follow(target, dt)
   local nearestX = math.max(self.x, math.min(target.x, self.x + self.width))
@@ -62,52 +63,53 @@ function Enemy:follow(target, dt)
 end
 
 function Enemy:draw()
-  if not self.isTouched then self:normal()
-  else                       self:death() end
+  if not self.isTouched then self:drawNormal()
+  else                       self:drawDeath() end
 end
 
-function Enemy:rotatedRectangle( mode, x, y, w, h, rx, ry, segments, r, ox, oy )
-   -- Check to see if you want the rectangle to be rounded or not:
-   if not oy and rx then r, ox, oy = rx, ry, segments end
-   -- Set defaults for rotation, offset x and y
-   r = r or 0
-   ox = ox or w / 2
-   oy = oy or h / 2
-   -- You don't need to indent these; I do for clarity
-   love.graphics.push()
-      love.graphics.translate( x + ox, y + oy )
-      love.graphics.push()
-         love.graphics.rotate( -r )
-         love.graphics.rectangle( mode, -ox, -oy, w, h, rx, ry, segments )
-      love.graphics.pop()
-   love.graphics.pop()
-end
+function Enemy:drawEye(x, y, radius, color)
+  local apple = {x = x, y = y, radius = radius }
 
+  local pupilColor = color or { 0, 0, 0 }
+  local appleColor = { 255, 255, 255 }
+  local diff       = { x = player.x - apple.x, y = player.y - apple.y }
+  local length     = math.sqrt(diff.x ^ 2 + diff.y ^ 2)
+  local unitVector = { x = diff.x / length, y = diff.y / length }
+  pupil = { x = apple.x + unitVector.x * apple.radius / 2, y = apple.y + unitVector.y * apple.radius / 2, radius = apple.radius / 2 }
+
+  if self.shouldSleep then pupilColor, appleColor = self.color, self.color end
+
+  love.graphics.setColor(appleColor)
+  love.graphics.circle("fill", apple.x, apple.y, apple.radius)
+  love.graphics.setColor(pupilColor)
+  love.graphics.circle("fill", pupil.x, pupil.y, pupil.radius)
+end
 
 function Enemy:drawEyes()
-  local eye1 = { x = self.x + self.width / 2, y = self.y + self.height / 2 + self.height / 5, radius =  self.width / 6}  -- yeah its weird
-  local eye2 = { x = self.x + self.width / 2, y = self.y + self.height / 2 - self.height / 5, radius =  self.height / 6} -- but's looks cool
-  love.graphics.setColor(255, 255, 255)
-  love.graphics.circle("fill", eye1.x, eye1.y, eye1.radius)
-  love.graphics.circle("fill", eye2.x, eye2.y, eye2.radius)
+  local k = 1
+  local radius = self.width < self.height and self.width or self.height
+  local x = self.x + self.width / 2
+  local y = self.y + self.height / 2
 
-  local diff       = function(player, eye)  return { x = player.x - eye.x, y = player.y - eye.y } end
-  local length     = function(diff)         return math.sqrt(diff.x ^ 2 + diff.y ^ 2)             end
-  local unitVector = function(diff, length) return { x = diff.x / length, y = diff.y / length }   end
-
-  local diff       = diff(player, eye1)
-  local length     = length(diff)
-  local unitVector = unitVector(diff, length)
-
-  pupil1 = { x = eye1.x + unitVector.x * eye1.radius / 2, y = eye1.y + unitVector.y * eye1.radius / 2, radius = eye1.radius / 2 }
-  pupil2 = { x = eye2.x + unitVector.x * eye2.radius / 2, y = eye2.y + unitVector.y * eye2.radius / 2, radius = eye2.radius / 2 }
-
-  love.graphics.setColor(0, 0, 0)
-  love.graphics.circle("fill", pupil1.x, pupil1.y, pupil1.radius)
-  love.graphics.circle("fill", pupil2.x, pupil2.y, pupil2.radius)
+  if self.eyes == 1 then
+    k = 3
+    radius = radius / k
+    self:drawEye(x, y, radius)
+  elseif self.eyes == 2 then
+    k = 6
+    radius = radius / k
+    self:drawEye(x, y + self.height / 5, radius )
+    self:drawEye(x, y - self.height / 5, radius )
+  else
+    k = 8
+    radius = radius / k 
+    self:drawEye(x, y + self.height / 5, radius)
+    self:drawEye(x, y - self.height / 5, radius)
+    self:drawEye(x - self.width / 5, y,  radius)
+  end
 end
 
-function Enemy:normal()
+function Enemy:drawNormal()
   love.graphics.setColor(self.color)
   local angle = math.atan2(player.y - self.y , player.x - self.x)
   love.graphics.rectangle ("fill", self.x, self.y, self.width, self.height, self.rx, self.ry)
@@ -119,8 +121,7 @@ function Enemy:shake()
   Screen:apply()
 end
 
-function Enemy:death()
-  self:shake()
+function Enemy:drawDeath()
   local color = self.color
   local alpha = 5 / self.timer
   color[4] = alpha
@@ -129,10 +130,26 @@ function Enemy:death()
 end
 
 function Enemy:update(dt)
+  self.age = self.age + dt
+  if self.age < self.sleepTime and self.age > self.sleepTime - 0.2 then
+    self.shouldSleep = true
+  end
+
+  if self.age > self.sleepTime then
+    self.sleepTime = self.sleepTime + math.random(1, 15)
+    self.shouldSleep = false
+  end
+  if self.age > self.fatefulTime then self:kill() end
+
+
+
+
   if not self.isTouched then self:follow(self.target, dt)
   else
     self.timer = self.timer + dt
-    if (self.timer > DEATH_ANIMATION_TIME) then self.shouldRemove = true end
+    if (self.timer > DEATH_ANIMATION_TIME) then
+      plop:play()
+      self:toRemove() end
   end
 end
 

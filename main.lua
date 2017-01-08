@@ -7,6 +7,7 @@ function love.load()
   isNight = false
   enemyTime = 0
   artifactTime = 0
+  highscore = 0
 
   love.window.setMode(640, 480, { resizable=true, vsync=false, minwidth=480, minheight=320})
 
@@ -20,17 +21,19 @@ function love.load()
 end
 
 function showHighscore(highscore)
-  love.graphics.print( "highscore: " .. math.floor(236) .. " level: " .. 436 .. " enemy speed: "  .. 324 )
-end
+  love.graphics.print( "highscore: " .. highscore, love.graphics.getWidth() - 100)
 
+end
 function love.update(dt)
-  if player.health > 0 then
-     player:update(dt)
-     updateEnemies(enemies, dt)
-     updateArtifacts(artifacts, dt)
+  needStop = player.health < 0
+  if needStop ~= true then
+    highscore = highscore + dt
+    player:update(dt)
+    updateEnemies(enemies, dt)
+    updateArtifacts(artifacts, dt)
     enemyTime    = dt + enemyTime
     artifactTime = dt + artifactTime
-    if enemyTime > 1    then spawnEnemy() end
+    if enemyTime > 1   then spawnEnemy() end
     if artifactTime > math.random(5, 20) then createArtifact() end
   end
 end
@@ -59,7 +62,21 @@ function updateArtifacts()
 end
 
 function spawnEnemy()
-  local n = Enemy(math.random())
+  local side = math.random(1, 4)
+  local start = {x = 0, y = 0}
+
+  if side == 1 then
+    start = { x = math.random(0, love.graphics.getWidth()), y = 0 }
+  elseif side == 2 then
+    start = { x = math.random(0, love.graphics.getWidth()), y = love.graphics.getHeight() }
+  elseif side == 3 then
+    start = { x = 0, y = math.random(0, love.graphics.getHeight()) }
+  else
+    start = { x = love.graphics.getWidth(), y = math.random(0, love.graphics.getHeight()) }
+  end
+
+
+  local n = Enemy(start.x, start.y)
   n:setTarget(player)
   enemies[#enemies + 1] = n
   enemyTime = 0
@@ -72,12 +89,16 @@ function createArtifact(x, y, type)
 end
 
 function drawBackground()
-  color = 156
-  love.graphics.setBackgroundColor(color, color, color)
+  if isNight then love.graphics.setBackgroundColor(33, 33, 33)
+  else            love.graphics.setBackgroundColor(255, 255, 225)
+  end
 end
 
 function drawText()
   if needStop then love.graphics.print("You lose", 10, 250, 0, 2, 2) end
+  love.graphics.setColor(0, 0, 0)
+  love.graphics.print("Health: " .. player.health)
+  showHighscore(highscore)
 end
 
 function hasCollide(rect, target)
@@ -96,7 +117,7 @@ end
 
 function love.draw()
   drawBackground()
-  local count = 0
+  drawText()
   for k, enemy in pairs(enemies)   do    enemy:draw() end
   for _, artifact in pairs(artifacts) do artifact:draw()  end
   player:draw()

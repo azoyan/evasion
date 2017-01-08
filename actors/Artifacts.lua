@@ -48,8 +48,15 @@ function Artifact:draw()
   elseif self.type == 4 then love.graphics.draw(flame, self.x, self.y)
   elseif self.type == 5 then love.graphics.draw(addHealth, self.x, self.y)
   else                       color = {255, 255, 255} end
-  -- love.graphics.setColor(color)
-  --love.graphics.rectangle("fill", self.x, self.y, self.width, self.height)
+
+-- Ещё артефакты:
+-- деньги
+-- неуязвимость / щит
+-- призрак
+-- ловушка приманка
+-- отпугиватель
+-- мина
+
 end
 
 function Artifact:use(enemies)

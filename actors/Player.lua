@@ -34,10 +34,11 @@ function Player:_new(x, y, radius, dragging)
 end
 
 function love.mousepressed(x, y, button, isTouch)
-  if needStop then
+  if needStop == true then
     needStop = false;
     player.x = x
     player.y = y
+    player.health = 3
   end
 
   DeltaX = player.x - x
@@ -84,8 +85,8 @@ end
 function Player:update(dt)
   self:move(dt)
   if self.isInvulnerable then
-    if INVULNERABLE_TIME  < 0 then self.isInvulnerable = false
-    else                           INVULNERABLE_TIME = INVULNERABLE_TIME - dt
+    if INVULNERABLE_TIME < 0 then self.isInvulnerable = false
+    else                          INVULNERABLE_TIME = INVULNERABLE_TIME - dt
     end
   else INVULNERABLE_TIME = DEFAULT_INVULNERABLE_TIME
   end
@@ -97,7 +98,6 @@ function Player:draw()
   love.graphics.circle("fill", self.x, self.y, self.radius)
   love.graphics.setColor(0, 255, 125)
   _, m, r, c = love.getVersion()
-  love.graphics.print("player x: " .. self.x .. " y: " .. self.y .. " radius: " .. self.radius .. " version: " .. m .. " health: " .. self.health)
 end
 
 return Player
