@@ -1,22 +1,27 @@
 local Actor = require "actors.Actor"
+require "andralog.andralog"
 
-local MIN_RADIUS     = love.graphics.getHeight() > love.graphics.getWidth() and love.graphics.getWidth() / 30 or love.graphics.getHeight() / 30
-local NORMAL_RADIUS  = MIN_RADIUS * 2
-local MAX_RADIUS     = NORMAL_RADIUS * 2
 local DEFAULT_HEALTH = 3
 
 local DEFAULT_INVULNERABLE_TIME = 3
 local INVULNERABLE_TIME = DEFAULT_INVULNERABLE_TIME
 
 local Player = {
-  radius = NORMAL_RADIUS,
+  radius = 0,
   dragging = { active = false, diffX = 0, diffY = 0 },
   health = DEFAULT_HEALTH,
   isInvulnerable = false,
 }
 
+local joystickRadius = biggestSide() / 10
+
+joystick = newAnalog(x, y, joystickRadius, joystickRadius / 2, 0)
+
 for k, v in pairs(Actor) do Player[k] = v end
 Player.__index = Player
+
+local NORMAL_RADIUS = 0
+local MAX_RADIUS = 0
 
 setmetatable(Player, {
   __index = Actor,
@@ -27,34 +32,49 @@ setmetatable(Player, {
   end,
 })
 
+function Player:setRadius(radius)
+  player.radius = radius
+end
+
+function love.resize()
+  MIN_RADIUS = biggestSide() / 60
+  NORMAL_RADIUS = MIN_RADIUS * 2
+  MAX_RADIUS = NORMAL_RADIUS * 2
+  Player:setRadius(MIN_RADIUS)
+end
+
 function Player:_new(x, y, radius, dragging)
   Actor._new(self, x, y, "player")
   self.radius   = radius
   self.dragging = dragging
+  self.speedX = 0
+  self.speedY = 0
+  self.maxSpeed = biggestSide()
 end
 
-function love.mousepressed(x, y, button, isTouch)
-  if needStop == true then
-    needStop = false;
-    player.x = x
-    player.y = y
-    player.health = 3
-  end
-
-  DeltaX = player.x - x
-  DeltaY = player.y - y
-  local inCircle = (DeltaX ^ 2 + DeltaY ^ 2) < player.radius ^ 2
-
-  if isTouch or button == 1 and inCircle then
-    player.dragging.active = true
-    player.dragging.diffX = x - player.x
-    player.dragging.diffY = y - player.y
-  end
-end
-
-function love.mousereleased(x, y, button, isTouch)
-  if isTouch or button ~=1 then player.dragging.active = false end
-end
+-- function love.mousepressed(x, y, button, isTouch)
+-- --   if needStop == true then
+-- --     needStop = false;
+-- --     player.x = x
+-- --     player.y = y
+-- --     player.health = 3
+-- --   end
+-- --
+-- --   DeltaX = player.x - x
+-- --   DeltaY = player.y - y
+-- --   local inCircle = (DeltaX ^ 2 + DeltaY ^ 2) < player.radius ^ 2
+-- --
+-- --   if isTouch and inCircle then
+-- --     player.dragging.active = true
+-- --     player.dragging.diffX = x - player.x
+-- --     player.dragging.diffY = y - player.y
+-- --   end
+-- end
+-- --
+-- function love.mousereleased(x, y, button, isTouch)
+-- --   if isTouch then player.dragging.active = false end
+--
+-- end
 
 function Player:injure(damage)
   if not player.isInvulnerable then
@@ -63,13 +83,42 @@ function Player:injure(damage)
   end
 end
 
+function love.touchpressed(id, x, y, dx, dy, pressure)
+  joystick.isVisible = true
+  joystick.cx, joystick.cy = x, y
+  joystick.touchPressed(id, x, y, dx, dy, pressure)
+end
+
+function love.touchreleased(id, x, y, dx, dy, pressure)	joystick.touchReleased(id, x, y, dx, dy, pressure)
+   joystick.isVisible = false
+ end
+
+function love.touchmoved(id, x, y, dx, dy, pressure)
+  joystick.touchMoved(id, x, y, dx, dy, pressure)
+end
+-- function love.mousepressed(x, y, button)
+-- 	love.touchpressed(1, x, y, 0, 0, 1)
+-- 	mousepressed = true
+-- end
+--
+-- function love.mousereleased(x, y, button)
+-- 	love.touchreleased(1, x, y, 0, 0, 1)
+-- 	mousepressed = false
+-- end
+
 function Player:move(dt)
   local x = self.x
   local y = self.y
-  if self.dragging.active then
-    self.x = love.mouse.getX() - self.dragging.diffX
-    self.y = love.mouse.getY() - self.dragging.diffY
+  if joystick then joystick.update(dt)
+    player.speedx = player.maxSpeed * joystick.getX()
+    player.speedy = player.maxSpeed * joystick.getY()
+    player.x = player.x + player.speedx * dt
+    player.y = player.y + player.speedy * dt
   end
+  -- if self.dragging.active then
+  --   self.x = love.mouse.getX() - self.dragging.diffX
+  --   self.y = love.mouse.getY() - self.dragging.diffY
+  -- end
   local offset = dt * math.sqrt((x - self.x) ^ 2 + (y - self.y) ^ 2)
   self:resize(offset, dt)
 end

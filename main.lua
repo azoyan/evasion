@@ -2,14 +2,16 @@ local Enemy    = require 'actors.Enemy'
 local Player   = require 'actors.Player'
 local Artifact = require 'actors.Artifacts'
 
+
 function love.load()
-  needStop = true
+  needStop = false
   isNight = false
   enemyTime = 0
   artifactTime = 0
   highscore = 0
+  enemySpawnTime = 15
 
-  love.window.setMode(640, 480, { resizable=true, vsync=false, minwidth=480, minheight=320})
+  love.window.setMode(1920, 1080, { resizable=true, vsync=false, minwidth=480, minheight=320})
 
   love.graphics.setBackgroundColor(255, 255, 255)
 
@@ -17,35 +19,38 @@ function love.load()
   enemies   = {}
   artifacts = {}
 
-  for _=1, 80 do spawnEnemy() end
+  for _=1, 2 do spawnEnemy() end
   player.health = -1
 
   math.randomseed(os.time())
 
   min_dt = 1/60
-    next_time = love.timer.getTime()
+  next_time = love.timer.getTime()
+  love.resize()
+
+  width = love.graphics.getWidth()
+  height = love.graphics.getHeight()
+
 
 end
 
-function showHighscore(highscore)
-  love.graphics.print( "highscore: " .. highscore, love.graphics.getWidth() - 100)
-end
+function showHighscore(highscore) love.graphics.print( "highscore: " .. highscore, love.graphics.getWidth() - 100) end
 
 function love.update(dt)
   next_time = next_time + min_dt
   needStop = player.health < 0
-  if needStop ~= true then
-    highscore = highscore + dt
+  --if needStop ~= true then
 
+    highscore = highscore + dt
     player:update(dt)
     updateEnemies(enemies, dt)
     assert(dt < 25)
     updateArtifacts(artifacts, dt)
     enemyTime    = dt + enemyTime
     artifactTime = dt + artifactTime
-    if enemyTime > 1   then spawnEnemy() end
+    if enemyTime > enemySpawnTime   then spawnEnemy() end
     if artifactTime > math.random(5, 20) then createArtifact() end
-  end
+  --end
 end
 
 function updateEnemies(enemies, dt)
@@ -140,6 +145,7 @@ function love.draw()
   love.timer.sleep(next_time - cur_time)
   drawBackground()
   drawText()
+  if joystick then joystick.draw() end
   for k, enemy in pairs(enemies)   do    enemy:draw() end
   for _, artifact in pairs(artifacts) do artifact:draw()  end
   player:draw()

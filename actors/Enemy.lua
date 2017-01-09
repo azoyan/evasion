@@ -37,8 +37,8 @@ setmetatable(Enemy, {
 
 function Enemy:_new(x, y, width, height, speed, target, rx, ry, color)
   Actor._new(self, x, y, "enemy", false, false)
-  self.width  = width  or math.random(25, 50)
-  self.height = height or math.random(25, 50)
+  self.width  = width  or math.random(biggestSide() / 2, biggestSide() * 2) / 15
+  self.height = height or math.random(biggestSide() / 2, biggestSide() * 2) / 15
   self.speed  = speed
   self.target = target
   self.rx = rx or math.random(-self.width / 2, self.width)
@@ -97,9 +97,15 @@ function Enemy:drawEyes()
     self:drawEye(x, y, radius)
   elseif self.eyes == 2 then
     k = 6
-    radius = radius / k
-    self:drawEye(x, y + self.height / 5, radius )
-    self:drawEye(x, y - self.height / 5, radius )
+    radius = radius / k    
+    if self.height < self.width then
+      self:drawEye(x + self.width / 5, y, radius)
+      self:drawEye(x - self.width / 5, y, radius)
+    else
+      self:drawEye(x, y + self.height / 5, radius)
+      self:drawEye(x, y - self.height / 5, radius)
+    end
+
   else
     k = 8
     radius = radius / k
@@ -129,6 +135,10 @@ function Enemy:drawDeath()
   love.graphics.circle("fill", self.x, self.y, self.width * 10 * self.timer)
 end
 
+function love.resize()
+
+end
+
 function Enemy:update(dt)
   self.age = self.age + dt
   if self.age < self.sleepTime and self.age > self.sleepTime - 0.2 then
@@ -140,10 +150,6 @@ function Enemy:update(dt)
     self.shouldSleep = false
   end
   if self.age > self.fatefulTime then self:kill() end
-
-
-
-
   if not self.isTouched then self:follow(self.target, dt)
   else
     self.timer = self.timer + dt

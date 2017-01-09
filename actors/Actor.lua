@@ -16,4 +16,8 @@ function Actor:_new(x, y, typename)
   self.typename = typename
 end
 
+function biggestSide()
+  return love.graphics.getHeight() < love.graphics.getWidth() and love.graphics.getWidth() or love.graphics.getHeight()
+end
+
 return Actor
