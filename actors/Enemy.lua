@@ -1,5 +1,5 @@
-local Actor = require "actors.Actor"
-local Screen= require 'effects.shack'
+local Actor  = require "actors.Actor"
+local Screen = require 'effects.shack'
 
 local Enemy = {}
 

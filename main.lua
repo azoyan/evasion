@@ -9,7 +9,7 @@ function love.load()
   enemyTime = 10
   artifactTime = 0
   highscore = 0
-  enemySpawnTime = 0.1
+  enemySpawnTime = 11
 
   love.window.setMode(1920, 1080, { resizable=true, vsync=false, minwidth=480, minheight=320})
 
