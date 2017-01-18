@@ -6,7 +6,7 @@ local Artifact = require 'actors.Artifacts'
 function love.load()
   needStop = false
   isNight = false
-  enemyTime = 0
+  enemyTime = 10
   artifactTime = 0
   highscore = 0
   enemySpawnTime = 0.1
