@@ -13,9 +13,9 @@ local Player = {
   isInvulnerable = false,
 }
 
-local joystickRadius = biggestSide() / 10
+local joystickRadius = smallestSide() / 20
 
-joystick = newAnalog(x, y, joystickRadius, joystickRadius / 2, 0)
+joystick = newAnalog(x, y, joystickRadius, joystickRadius * 0.75, 0)
 
 for k, v in pairs(Actor) do Player[k] = v end
 Player.__index = Player
@@ -49,32 +49,31 @@ function Player:_new(x, y, radius, dragging)
   self.dragging = dragging
   self.speedX = 0
   self.speedY = 0
-  self.maxSpeed = biggestSide()
+  self.maxSpeed = biggestSide() / 2
 end
 
--- function love.mousepressed(x, y, button, isTouch)
--- --   if needStop == true then
--- --     needStop = false;
--- --     player.x = x
--- --     player.y = y
--- --     player.health = 3
--- --   end
--- --
--- --   DeltaX = player.x - x
--- --   DeltaY = player.y - y
--- --   local inCircle = (DeltaX ^ 2 + DeltaY ^ 2) < player.radius ^ 2
--- --
--- --   if isTouch and inCircle then
--- --     player.dragging.active = true
--- --     player.dragging.diffX = x - player.x
--- --     player.dragging.diffY = y - player.y
--- --   end
--- end
--- --
--- function love.mousereleased(x, y, button, isTouch)
--- --   if isTouch then player.dragging.active = false end
---
--- end
+function love.mousepressed(x, y, button, isTouch)
+  if needStop == true then
+    needStop = false;
+    player.x = x
+    player.y = y
+    player.health = 3
+  end
+
+  DeltaX = player.x - x
+  DeltaY = player.y - y
+  local inCircle = (DeltaX ^ 2 + DeltaY ^ 2) < player.radius ^ 2
+
+  if button == 1 and inCircle then
+    player.dragging.active = true
+    player.dragging.diffX = x - player.x
+    player.dragging.diffY = y - player.y
+  end
+end
+
+function love.mousereleased(x, y, button, isTouch)
+  if button == 1 then player.dragging.active = false end
+end
 
 function Player:injure(damage)
   if not player.isInvulnerable then
@@ -96,15 +95,19 @@ function love.touchreleased(id, x, y, dx, dy, pressure)	joystick.touchReleased(i
 function love.touchmoved(id, x, y, dx, dy, pressure)
   joystick.touchMoved(id, x, y, dx, dy, pressure)
 end
--- function love.mousepressed(x, y, button)
--- 	love.touchpressed(1, x, y, 0, 0, 1)
--- 	mousepressed = true
--- end
---
--- function love.mousereleased(x, y, button)
--- 	love.touchreleased(1, x, y, 0, 0, 1)
--- 	mousepressed = false
--- end
+function love.mousepressed(x, y, button)
+	love.touchpressed(1, x, y, 0, 0, 1)
+	mousepressed = true
+end
+
+function love.mousemoved( x, y, dx, dy, istouch )
+  player.x, player.y = x, y
+end
+
+function love.mousereleased(x, y, button)
+	love.touchreleased(1, x, y, 0, 0, 1)
+	mousepressed = false
+end
 
 function Player:move(dt)
   local x = self.x
@@ -114,6 +117,8 @@ function Player:move(dt)
     player.speedy = player.maxSpeed * joystick.getY()
     player.x = player.x + player.speedx * dt
     player.y = player.y + player.speedy * dt
+    if player.x > love.graphics.getWidth() or player.x < 0 then player.x = math.abs(player.x % love.graphics.getWidth()) end
+    if player.y > love.graphics.getHeight() or player.y < 0 then player.y = math.abs(player.y % love.graphics.getHeight()) end
   end
   -- if self.dragging.active then
   --   self.x = love.mouse.getX() - self.dragging.diffX

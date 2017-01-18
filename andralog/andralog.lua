@@ -16,7 +16,7 @@ function newAnalog(Ax, Ay, Ar, Br, Bd)
 	self.releasePos = 0
 	self.releaseTimer = 0
 	self.releaseSpeed = .2
-  self.isVisible = false
+    self.isVisible = false
 
 	--Configurable settings
 	self.spring = true
@@ -93,8 +93,8 @@ function newAnalog(Ax, Ay, Ar, Br, Bd)
     if not self.isVisible then return end
 		local t = self
 		love.graphics.setColor(255, 255, 255, 155)
-		love.graphics.circle("line", t.cx, t.cy, t.size, 32)
-		love.graphics.circle("line", t.cx, t.cy, t.deadzone*t.size, 32)
+		-- love.graphics.circle("line", t.cx, t.cy, t.size, 32)
+		-- love.graphics.circle("line", t.cx, t.cy, t.deadzone*t.size, 32)
 
 		love.graphics.stencil( function() self.pokedStencil(t.cx, t.cy, t.deadzone*t.size, t.size, 32) end, "replace", 1)
 		love.graphics.setStencilTest( "greater", 0 )
@@ -105,18 +105,18 @@ function newAnalog(Ax, Ay, Ar, Br, Bd)
 		local ax, ay = t.cx + math.cos(t.angle)*t.d*t.size, t.cy - math.sin(t.angle)*t.d*t.size
 		love.graphics.stencil( function() love.graphics.circle("fill", ax, ay, t.button, 32) end )
 		love.graphics.setStencilTest( "equal", 0 )
-		local l = love.graphics.getLineWidth()
+		-- local l = love.graphics.getLineWidth()
 		love.graphics.setLineWidth(12)
-		love.graphics.setColor(105, 105, 105, 255)
-		love.graphics.line(ax, ay, t.cx, t.cy)
+		love.graphics.setColor(105, 105, 105, 128)
+		--love.graphics.line(ax, ay, t.cx, t.cy)
 		love.graphics.circle("fill", t.cx, t.cy, 12/2, 32)
-		love.graphics.setLineWidth(l)
+		-- love.graphics.setLineWidth(l)
 		love.graphics.setStencilTest()
 
-		love.graphics.setColor(0, 0, 0, 255)
+		love.graphics.setColor(64, 64, 64, 99)
 		love.graphics.circle("fill", ax, ay, t.button, 32)
-		love.graphics.setColor(35, 35, 35, 155)
-		love.graphics.circle("line", ax, ay, t.button, 32)
+		-- love.graphics.setColor(35, 35, 35, 65)
+		-- love.graphics.circle("line", ax, ay, t.button, 32)
 	end
 
 	self.update = function(dt)

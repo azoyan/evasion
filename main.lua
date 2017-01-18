@@ -9,20 +9,20 @@ function love.load()
   enemyTime = 0
   artifactTime = 0
   highscore = 0
-  enemySpawnTime = 15
+  enemySpawnTime = 0.1
 
   love.window.setMode(1920, 1080, { resizable=true, vsync=false, minwidth=480, minheight=320})
 
   love.graphics.setBackgroundColor(255, 255, 255)
 
+  math.randomseed(os.time())
   player    = Player(love.graphics.getWidth() / 2, love.graphics.getHeight() / 2)
   enemies   = {}
   artifacts = {}
 
-  for _=1, 2 do spawnEnemy() end
+  for _=1,1 do spawnEnemy() end
   player.health = -1
 
-  math.randomseed(os.time())
 
   min_dt = 1/60
   next_time = love.timer.getTime()
@@ -30,8 +30,6 @@ function love.load()
 
   width = love.graphics.getWidth()
   height = love.graphics.getHeight()
-
-
 end
 
 function showHighscore(highscore) love.graphics.print( "highscore: " .. highscore, love.graphics.getWidth() - 100) end
@@ -44,7 +42,6 @@ function love.update(dt)
     highscore = highscore + dt
     player:update(dt)
     updateEnemies(enemies, dt)
-    assert(dt < 25)
     updateArtifacts(artifacts, dt)
     enemyTime    = dt + enemyTime
     artifactTime = dt + artifactTime
@@ -68,7 +65,6 @@ function updateEnemies(enemies, dt)
 end
 
 function updateArtifacts(artifacts, dt)
-  assert(dt < 25)
   for k, artifact in pairs(artifacts) do
     if hasCollide(artifact, player, dt) then
       artifacts[k]:use(enemies)
@@ -113,16 +109,11 @@ end
 function drawText()
   if needStop then love.graphics.print("You lose", 10, 250, 0, 2, 2) end
   love.graphics.setColor(0, 0, 0)
-  love.graphics.print("Health: " .. player.health)
+  love.graphics.print("Health: " .. player.health .. " FPS: " .. love.timer.getFPS())
   showHighscore(highscore)
 end
 
 function hasCollide(rect, target, dt)
-  assert(dt < 25)
-  if dt > 1/25 then
-    return target.x - target.radius < rect.x + rect.width and target.y - target.radius < rect.y + rect.height
-  end
-
   local circleDistance_x = math.abs(target.x - rect.x - rect.width  / 2);
   local circleDistance_y = math.abs(target.y - rect.y - rect.height / 2);
 

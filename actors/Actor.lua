@@ -16,8 +16,14 @@ function Actor:_new(x, y, typename)
   self.typename = typename
 end
 
-function biggestSide()
-  return love.graphics.getHeight() < love.graphics.getWidth() and love.graphics.getWidth() or love.graphics.getHeight()
+function biggestSide() 
+  return love.graphics.getHeight() < love.graphics.getWidth() and love.graphics.getWidth() or love.graphics.getHeight() 
+end
+function smallestSide() 
+  return love.graphics.getHeight() > love.graphics.getWidth() and love.graphics.getWidth() or love.graphics.getHeight() 
 end
 
+function randomColor()
+  return { math.random(0, 255), math.random(0, 255), math.random(0, 255)  }
+end
 return Actor

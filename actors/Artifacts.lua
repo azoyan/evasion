@@ -33,8 +33,8 @@ end
 
 function Artifact:_new(x, y, type)
   Actor._new(self, x, y, "artifcat")
-  self.width  = width
-  self.height = height
+  self.width,
+  self.height = 32, 32
   self.speed  = speed
   self.type = type ~= 0 and math.random(1, 5) or type
 end
