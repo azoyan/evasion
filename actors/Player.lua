@@ -1,5 +1,4 @@
 local Actor = require "actors.Actor"
-require "andralog.andralog"
 
 local DEFAULT_HEALTH = 3
 
@@ -12,10 +11,6 @@ local Player = {
   health = DEFAULT_HEALTH,
   isInvulnerable = false,
 }
-
-local joystickRadius = smallestSide() / 20
-
-joystick = newAnalog(x, y, joystickRadius, joystickRadius * 0.75, 0)
 
 for k, v in pairs(Actor) do Player[k] = v end
 Player.__index = Player
@@ -53,7 +48,7 @@ function Player:_new(x, y, radius, dragging)
 end
 
 function love.mousepressed(x, y, button, isTouch)
-  if needStop == true then
+  if needStop then
     needStop = false;
     player.x = x
     player.y = y
@@ -82,21 +77,22 @@ function Player:injure(damage)
   end
 end
 
-function love.touchpressed(id, x, y, dx, dy, pressure)
-  joystick.isVisible = true
-  joystick.cx, joystick.cy = x, y
-  joystick.touchPressed(id, x, y, dx, dy, pressure)
-end
+-- function love.touchpressed(id, x, y, dx, dy, pressure)
+--   joystick.isVisible = true
+--   joystick.cx, joystick.cy = x, y
+--   joystick.touchPressed(id, x, y, dx, dy, pressure)
+-- end
 
-function love.touchreleased(id, x, y, dx, dy, pressure)	joystick.touchReleased(id, x, y, dx, dy, pressure)
-   joystick.isVisible = false
- end
+-- function love.touchreleased(id, x, y, dx, dy, pressure)	joystick.touchReleased(id, x, y, dx, dy, pressure)
+--    joystick.isVisible = false
+--  end
 
-function love.touchmoved(id, x, y, dx, dy, pressure)
-  joystick.touchMoved(id, x, y, dx, dy, pressure)
-end
+-- function love.touchmoved(id, x, y, dx, dy, pressure)
+--   joystick.touchMoved(id, x, y, dx, dy, pressure)
+-- end
+
 function love.mousepressed(x, y, button)
-	love.touchpressed(1, x, y, 0, 0, 1)
+	--love.touchpressed(1, x, y, 0, 0, 1)
 	mousepressed = true
 end
 
@@ -105,7 +101,7 @@ function love.mousemoved( x, y, dx, dy, istouch )
 end
 
 function love.mousereleased(x, y, button)
-	love.touchreleased(1, x, y, 0, 0, 1)
+	-- love.touchreleased(1, x, y, 0, 0, 1)
 	mousepressed = false
 end
 
@@ -117,13 +113,13 @@ function Player:move(dt)
     player.speedy = player.maxSpeed * joystick.getY()
     player.x = player.x + player.speedx * dt
     player.y = player.y + player.speedy * dt
-    if player.x > love.graphics.getWidth() or player.x < 0 then player.x = math.abs(player.x % love.graphics.getWidth()) end
-    if player.y > love.graphics.getHeight() or player.y < 0 then player.y = math.abs(player.y % love.graphics.getHeight()) end
+    -- if player.x > love.graphics.getWidth() or player.x < 0 then player.x = math.abs(player.x % love.graphics.getWidth()) end
+    -- if player.y > love.graphics.getHeight() or player.y < 0 then player.y = math.abs(player.y % love.graphics.getHeight()) end
   end
-  -- if self.dragging.active then
-  --   self.x = love.mouse.getX() - self.dragging.diffX
-  --   self.y = love.mouse.getY() - self.dragging.diffY
-  -- end
+  if self.dragging.active then
+    self.x = love.mouse.getX() - self.dragging.diffX
+    self.y = love.mouse.getY() - self.dragging.diffY
+  end
   local offset = dt * math.sqrt((x - self.x) ^ 2 + (y - self.y) ^ 2)
   self:resize(offset, dt)
 end

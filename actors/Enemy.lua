@@ -34,7 +34,7 @@ function Enemy:_new(x, y, width, height, speed, target, rx, ry, color)
   self.sleepTime = math.random(3, 10)
   self.shouldSleep = false
   self.age = 0
-  self.fatefulTime = math.random(10, 20)
+  self.lifeTime = math.random(10, 20)
   self.deathAnimationTime = 0 
   self.secondColor = randomColor()
 end
@@ -144,7 +144,7 @@ function Enemy:update(dt)
     self.sleepTime = self.sleepTime + math.random(1, 6)
     self.shouldSleep = false
   end
-  if self.age > self.fatefulTime then self:kill() end
+  if self.age > self.lifeTime then self:kill() end
   if not self.isTouched then self:follow(self.target, dt)
   else
     self.deathAnimationTime = self.deathAnimationTime + dt

@@ -1,7 +1,7 @@
 local Enemy    = require 'actors.Enemy'
 local Player   = require 'actors.Player'
 local Artifact = require 'actors.Artifacts'
-
+local orientation = require "orientation/orientation"
 
 function love.load()
   needStop = false
@@ -11,16 +11,18 @@ function love.load()
   highscore = 0
   enemySpawnTime = 11
 
-  love.window.setMode(1920, 1080, { resizable=true, vsync=false, minwidth=480, minheight=320})
+  love.window.setMode(1024, 768, { resizable=true, vsync=false, minwidth=480, minheight=320})
 
   love.graphics.setBackgroundColor(255, 255, 255)
 
+  width, height = love.graphics.getWidth(), love.graphics.getHeight()
+
   math.randomseed(os.time())
-  player    = Player(love.graphics.getWidth() / 2, love.graphics.getHeight() / 2)
+  player    = Player(width / 2, height / 2)
   enemies   = {}
   artifacts = {}
 
-  for _=1,1 do spawnEnemy() end
+  for _ = 1, 1 do spawnEnemy() end
   player.health = -1
 
 
@@ -30,11 +32,13 @@ function love.load()
 
   width = love.graphics.getWidth()
   height = love.graphics.getHeight()
+  orientation.screen();
+  backgroundColor = { 123, 123, 123 }
 end
 
-function showHighscore(highscore) love.graphics.print( "highscore: " .. highscore, love.graphics.getWidth() - 100) end
-
 function love.update(dt)
+  width, height = love.graphics.getWidth(), love.graphics.getHeight()
+  orientation.update(dt)
   next_time = next_time + min_dt
   needStop = player.health < 0
   --if needStop ~= true then
@@ -75,7 +79,7 @@ end
 
 function spawnEnemy()
   local side = math.random(1, 4)
-  local start = {x = 0, y = 0}
+  local start = { x = 0, y = 0 }
 
   if side == 1 then
     start = { x = math.random(0, love.graphics.getWidth()), y = 0 }
@@ -101,30 +105,42 @@ function createArtifact(x, y, type)
 end
 
 function drawBackground()
-  if isNight then love.graphics.setBackgroundColor(33, 33, 33)
-  else            love.graphics.setBackgroundColor(225, 255, 255)
+  if not isNight then love.graphics.setBackgroundColor(backgroundColor)
+  else                love.graphics.setBackgroundColor(125, 155, 155)
   end
 end
 
 function drawText()
-  if needStop then love.graphics.print("You lose", 10, 250, 0, 2, 2) end
+  if needStop then love.graphics.print("You lose", love.graphics.getWidth() / 2, love.graphics.getHeight() / 2, 0, 2, 2) end
   love.graphics.setColor(0, 0, 0)
   love.graphics.print("Health: " .. player.health .. " FPS: " .. love.timer.getFPS())
   showHighscore(highscore)
+end
+
+function showHighscore(highscore) 
+  love.graphics.print( "highscore: " .. highscore, love.graphics.getWidth() - 100) 
 end
 
 function hasCollide(rect, target, dt)
   local circleDistance_x = math.abs(target.x - rect.x - rect.width  / 2);
   local circleDistance_y = math.abs(target.y - rect.y - rect.height / 2);
 
-  if (circleDistance_x > (rect.width  / 2 + target.radius)) then return false end
-  if (circleDistance_y > (rect.height / 2 + target.radius)) then return false end
+  if circleDistance_x > rect.width  / 2 + target.radius then return false end
+  if circleDistance_y > rect.height / 2 + target.radius then return false end
 
-  if (circleDistance_x <= (rect.width / 2)) then return true end
-  if (circleDistance_y <= (rect.height/ 2)) then return true end
+  if circleDistance_x <= rect.width  / 2                then return true end
+  if circleDistance_y <= rect.height / 2                then return true end
 
   cornerDistance_sq = (circleDistance_x - rect.width / 2) ^ 2 + (circleDistance_y - rect.height / 2) ^ 2;
-  return (cornerDistance_sq <= (target.radius ^ 2));
+  return cornerDistance_sq <= target.radius ^ 2;
+end
+
+
+function love.resize(w, h)
+  if w ~= nil and h ~= nil then
+    print(("Window resized to width: %d and height: %d."):format(w, h))
+    backgroundColor = { math.random(0, 255), math.random(0, 255), math.random(0, 255) }
+  end
 end
 
 function love.draw()
@@ -134,10 +150,22 @@ function love.draw()
     return
   end
   love.timer.sleep(next_time - cur_time)
+
+  love.graphics.push()
+  -- Take into account this rotation is pretty basic, use a camera system or something more complex to actually rotate
+  love.graphics.translate(love.graphics.getWidth() / 2, love.graphics.getHeight() / 2)
+  love.graphics.rotate(orientation.get()) -- Returns the current orientation
+  if orientation.name == "portrait" then 
+    love.graphics.translate(-love.graphics.getWidth() / 2, -love.graphics.getHeight() / 2)
+  else 
+    love.graphics.translate(-love.graphics.getWidth() / 2, -love.graphics.getHeight() / 2)
+  end
   drawBackground()
   drawText()
-  if joystick then joystick.draw() end
-  for k, enemy in pairs(enemies)   do    enemy:draw() end
-  for _, artifact in pairs(artifacts) do artifact:draw()  end
+  love.graphics.pop()
+
+
+  for k, enemy    in pairs(enemies)   do enemy:draw()    end
+  for k, artifact in pairs(artifacts) do artifact:draw() end
   player:draw()
 end
