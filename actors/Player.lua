@@ -5,18 +5,10 @@ local DEFAULT_HEALTH = 3
 local DEFAULT_INVULNERABLE_TIME = 3
 local INVULNERABLE_TIME = DEFAULT_INVULNERABLE_TIME
 
-local Player = {
-  radius = 0,
-  dragging = { active = false, diffX = 0, diffY = 0 },
-  health = DEFAULT_HEALTH,
-  isInvulnerable = false,
-}
+local Player = {}
 
 for k, v in pairs(Actor) do Player[k] = v end
 Player.__index = Player
-
-local NORMAL_RADIUS = 0
-local MAX_RADIUS = 0
 
 setmetatable(Player, {
   __index = Actor,
@@ -31,20 +23,17 @@ function Player:setRadius(radius)
   player.radius = radius
 end
 
-function love.resize()
-  MIN_RADIUS = biggestSide() / 60
-  NORMAL_RADIUS = MIN_RADIUS * 2
-  MAX_RADIUS = NORMAL_RADIUS * 2
-  Player:setRadius(MIN_RADIUS)
-end
-
 function Player:_new(x, y, radius, dragging)
   Actor._new(self, x, y, "player")
-  self.radius   = radius
-  self.dragging = dragging
-  self.speedX = 0
-  self.speedY = 0
-  self.maxSpeed = biggestSide() / 2
+  self.radius    = radius
+  self.minRadius = radius
+  self.maxRadius = radius * 2
+  self.dragging  = dragging or { active = false, diffX = 0, diffY = 0 }
+  self.health    = DEFAULT_HEALTH
+  self.isInvulnerable = false
+  self.speedX    = 0
+  self.speedY    = 0
+  self.maxSpeed = biggestSide() / 2  
 end
 
 function love.mousepressed(x, y, button, isTouch)
@@ -54,11 +43,9 @@ function love.mousepressed(x, y, button, isTouch)
     player.y = y
     player.health = 3
   end
-
-  DeltaX = player.x - x
-  DeltaY = player.y - y
+  local DeltaX = player.x - x
+  local DeltaY = player.y - y
   local inCircle = (DeltaX ^ 2 + DeltaY ^ 2) < player.radius ^ 2
-
   if button == 1 and inCircle then
     player.dragging.active = true
     player.dragging.diffX = x - player.x
@@ -67,7 +54,9 @@ function love.mousepressed(x, y, button, isTouch)
 end
 
 function love.mousereleased(x, y, button, isTouch)
-  if button == 1 then player.dragging.active = false end
+  if button == 1 then 
+    player.dragging.active = false 
+  end
 end
 
 function Player:injure(damage)
@@ -75,34 +64,6 @@ function Player:injure(damage)
     self.health = self.health - 1
     self.isInvulnerable = true
   end
-end
-
--- function love.touchpressed(id, x, y, dx, dy, pressure)
---   joystick.isVisible = true
---   joystick.cx, joystick.cy = x, y
---   joystick.touchPressed(id, x, y, dx, dy, pressure)
--- end
-
--- function love.touchreleased(id, x, y, dx, dy, pressure)	joystick.touchReleased(id, x, y, dx, dy, pressure)
---    joystick.isVisible = false
---  end
-
--- function love.touchmoved(id, x, y, dx, dy, pressure)
---   joystick.touchMoved(id, x, y, dx, dy, pressure)
--- end
-
-function love.mousepressed(x, y, button)
-	--love.touchpressed(1, x, y, 0, 0, 1)
-	mousepressed = true
-end
-
-function love.mousemoved( x, y, dx, dy, istouch )
-  player.x, player.y = x, y
-end
-
-function love.mousereleased(x, y, button)
-	-- love.touchreleased(1, x, y, 0, 0, 1)
-	mousepressed = false
 end
 
 function Player:move(dt)
@@ -120,34 +81,40 @@ function Player:move(dt)
     self.x = love.mouse.getX() - self.dragging.diffX
     self.y = love.mouse.getY() - self.dragging.diffY
   end
-  local offset = dt * math.sqrt((x - self.x) ^ 2 + (y - self.y) ^ 2)
+  local offset = dt * math.sqrt((x - self.x) ^ 2 + (y - self.y) ^ 2)  
   self:resize(offset, dt)
 end
 
-function Player:resize(offset, dt)
+function Player:resize(offset, dt)  
   if self.dragging.active then
-    if (offset > dt and self.radius < MAX_RADIUS) then self.radius = self.radius + offset
-    elseif self.radius > NORMAL_RADIUS then self.radius = self.radius - dt * 20
-    else                                    self.radius = NORMAL_RADIUS end
-  else self.radius = self.radius > NORMAL_RADIUS and self.radius - dt * 20 or NORMAL_RADIUS end
+    if (offset > dt and self.radius < self.maxRadius) then 
+      self.radius = self.radius + offset
+    elseif 
+      self.radius > self.minRadius then self.radius = self.radius - dt * 20
+    else                                     
+      self.radius = self.minRadius end
+  else 
+    self.radius = self.radius > self.minRadius and self.radius - dt * 20 or self.minRadius 
+  end
 end
 
 function Player:update(dt)
-  self:move(dt)
+  self:move(dt)  
   if self.isInvulnerable then
-    if INVULNERABLE_TIME < 0 then self.isInvulnerable = false
-    else                          INVULNERABLE_TIME = INVULNERABLE_TIME - dt
+    if INVULNERABLE_TIME < 0 then 
+      self.isInvulnerable = false
+    else                          
+      INVULNERABLE_TIME = INVULNERABLE_TIME - dt
     end
-  else INVULNERABLE_TIME = DEFAULT_INVULNERABLE_TIME
+  else 
+    INVULNERABLE_TIME = DEFAULT_INVULNERABLE_TIME
   end
 end
 
 function Player:draw()
   local color = self.isInvulnerable and { 127, 127, 127 } or {  255 / self.health, 255 / 3 * self.health, 0, 128 }
-  love.graphics.setColor(color)
-  love.graphics.circle("fill", self.x, self.y, self.radius)
-  love.graphics.setColor(0, 255, 125)
-  _, m, r, c = love.getVersion()
+  love.graphics.setColor(color)  
+  love.graphics.circle("fill", self.x, self.y, self.radius)  
 end
 
 return Player
