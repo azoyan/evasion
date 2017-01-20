@@ -18,7 +18,7 @@ function love.load()
   width, height = love.graphics.getWidth(), love.graphics.getHeight()
 
   math.randomseed(os.time())
-  player    = Player(width / 2, height / 2)
+  player    = Player(width / 2, height / 2, smallestSide() / 16)
   enemies   = {}
   artifacts = {}
 
@@ -33,7 +33,7 @@ function love.load()
   width = love.graphics.getWidth()
   height = love.graphics.getHeight()
   orientation.screen();
-  backgroundColor = { 123, 123, 123 }
+  backgroundColor = { 225, 255, 255 }
 end
 
 function love.update(dt)
@@ -160,12 +160,11 @@ function love.draw()
   else 
     love.graphics.translate(-love.graphics.getWidth() / 2, -love.graphics.getHeight() / 2)
   end
-  drawBackground()
-  drawText()
   love.graphics.pop()
-
+ drawBackground()
+ drawText()
 
   for k, enemy    in pairs(enemies)   do enemy:draw()    end
   for k, artifact in pairs(artifacts) do artifact:draw() end
-  player:draw()
+  player:draw()  
 end
