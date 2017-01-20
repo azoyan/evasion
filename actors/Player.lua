@@ -7,6 +7,8 @@ local INVULNERABLE_TIME = DEFAULT_INVULNERABLE_TIME
 
 local Player = {}
 
+local blinkTimer = 0
+
 for k, v in pairs(Actor) do Player[k] = v end
 Player.__index = Player
 
@@ -105,6 +107,7 @@ function Player:update(dt)
       self.isInvulnerable = false
     else                          
       INVULNERABLE_TIME = INVULNERABLE_TIME - dt
+      blinkTimer = blinkTimer + dt
     end
   else 
     INVULNERABLE_TIME = DEFAULT_INVULNERABLE_TIME
@@ -113,7 +116,11 @@ end
 
 function Player:draw()
   local color = self.isInvulnerable and { 127, 127, 127 } or {  255 / self.health, 255 / 3 * self.health, 0, 128 }
-  love.graphics.setColor(color)  
+  if     blinkTimer < 0.5                    then color = {127, 127, 127}
+  elseif blinkTimer > 0.5 and blinkTimer < 1 then color = {0 ,0 ,0, 50}
+  else                                            blinkTimer = 0
+  end
+  love.graphics.setColor(color) 
   love.graphics.circle("fill", self.x, self.y, self.radius)  
 end
 

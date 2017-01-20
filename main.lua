@@ -60,9 +60,11 @@ function updateEnemies(enemies, dt)
     if enemies[k] ~= nil then
       if enemy.shouldRemove then  enemies[k] = nil end
       enemy:update(dt)
-      if hasCollide(enemy, player, dt) and not enemy.isTouched then
-        player:injure(1)
-        enemy:kill()
+      if not player.isInvulnerable then
+        if hasCollide(enemy, player, dt) and not enemy.isTouched then
+          player:injure(1)
+          enemy:kill()
+        end
       end
     end
   end
